@@ -1,0 +1,68 @@
+<project name="rtmidi" default="dist">
+	<property name="rtmidi.version" value="1.0.10"/>
+	<property name="rtmidi.jar" value="JRtMidi-${rtmidi.version}.jar"/>
+
+	<path id="rtmidi.classpath">
+		<pathelement location="${rtmidi.jar}"/>
+		<pathelement location="jtest"/>
+		<pathelement location="bin"/>
+	</path>
+	<target name="init">
+		<mkdir dir="bin"/>
+		<mkdir dir="org/rtmidi"/>
+		<mkdir dir="dist"/>
+	</target>
+	<target name="clean">
+		<exec command="scons -c"/>
+		<delete dir="bin"/>
+		<delete>
+			<fileset dir="jtest">
+				<include name="*.class"/>
+			</fileset>
+		</delete>
+		<delete dir="dist"/>
+		<delete dir="org"/>
+		<delete file="JRtMidi_wrap.cxx"/>
+		<delete file="JRtMidi_wrap.h"/>
+		<delete file="libjrtmidi.so"/>
+		<delete file="${rtmidi.jar}"/>
+	</target>
+
+	<!-- Generates the JNI wrapper C++ and Java code -->
+	<target name="swig" depends="init">
+		<exec command="swig -directors -c++ -java -package org.rtmidi -outdir org/rtmidi JRtMidi.i"/>
+	</target>
+	
+	<!-- Builds the library -->
+	<target name="scons" depends="swig">
+		<exec command="scons"/>
+	</target>
+
+	<!-- Compiles the Java code -->
+	<target name="compile" depends="init">
+		<copy file="libjrtmidi.so" tofile="bin/libjrtmidi.so"/>
+		<javac destdir="bin" srcdir="org">
+			<include name="**/*.java"/>	
+		</javac>
+	</target>
+
+	<!-- Creates a Jar of the Java code and puts it and the library into the 'dist' folder -->
+	<target name="dist" depends="scons,compile">
+		<jar destfile="${rtmidi.jar}" basedir="bin">
+			<fileset dir="bin">
+				<include name="**/*.class"/>
+			</fileset>
+			<fileset dir="org">
+				<include name="**/*.java"/>
+			</fileset>
+		</jar>
+		<move file="${rtmidi.jar}" tofile="dist/${rtmidi.jar}"/>
+		<copy file="libjrtmidi.so" tofile="dist/libjrtmidi.so"/>
+	</target>
+	<target name="test" depends="dist">
+		<javac classpathref="rtmidi.classpath" destdir="jtest" srcdir="jtest">
+			<include name="*.java"/>
+		</javac>
+		<java classpathref="rtmidi.classpath" classname="VirtualPortInOutTest"/> 
+	</target>
+</project>

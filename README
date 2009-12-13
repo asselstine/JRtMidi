@@ -1,0 +1,84 @@
+Introduction
+
+
+JRtMidi is a Java wrapper of the RtMidi library.
+
+For more information on RtMidi, please see the documentation included in the RtMidi subdirectory.  Or go to http://www.music.mcgill.ca/~gary/rtmidi/
+
+
+
+Building
+
+
+JRtMidi requires ANT, SCons and SWIG to build:
+
+ANT - http://ant.apache.org
+SCons - http://www.scons.org
+SWIG - http://www.swig.org
+
+To build the complete distribution, including Jar and library type 'ant'.  This will generate the wrappers, build the library, compile the class files, create a jar file, then put the Jar and the library into the 'dist' folder.
+
+To test the implementation using virtual ports type 'ant test'. Note; you will need to connect the virtual ports by hand. For example, in Linux: 
+	'aconnect 129 130' 
+will connect client 129 to 130.
+
+If you would like to build JRtMidi with a newer version of RtMidi you will need to change the RT_MIDI_FOLDER variable in the SConstruct file, and update the 'rtmidi.version' variable in build.xml
+
+
+
+Usage
+
+
+To see an example of it's usage, check out 'jtest/VirtualPortInOutTest.java'.   
+
+To send a MIDI message you will need to do something like:
+
+'MySender.java':
+
+	class MySender {
+		public static void main(String[] args) {
+			System.loadLibrary("jrtmidi");
+			RtMidiOut output = new RtMidiOut("My Input Client");
+			CharVector vector = new CharVector(3);
+			vector.set(0,(short)144); //'note on, channel 1' MIDI status byte
+			vector.set(1,(short)90); //note
+			vector.set(2,(short)66); //velocity
+			input.openVirtualPort("foooz");
+			input.sendMessage(vector);
+		}
+	}
+
+
+To receive a messages, you *should* use a callback (rather than polling with 'getMessage()'):
+
+'MyCallback.java':
+
+	import org.rtmidi.RtCallback;
+	import org.rtmidi.CharVector;
+
+	class MyCallback extends RtCallback {
+		public void receiveMessage(double timeStamp, CharVector message) {
+			String str = "";
+			for (int i = 0; i < message.size(); i++) {
+				if (i != 0) str += ", ";
+				str += message.get(i);
+			}
+			System.out.println("Received: " + str);
+		}
+	}
+
+'MyReceiver.java':
+
+	import org.rtmidi.*;
+
+	class MyReceiver {
+		public static void main(String[] args) {
+			System.loadLibrary("jrtmidi");
+			RtMidiIn input = new RtMidiIn("My Input");
+			input.setCallback( new MyCallback() );
+			input.openVirtualPort();	
+		}
+	}
+
+NOTE:  'libjrtmidi.so' must be in one of library paths! These paths are different from class paths.  You can make sure it is by exporting the environment variable LD_LIBRARY_PATH to a path which contains libjrtmidi.so.  This is kind of awkward; I'm sure there is a way to automate this.
+
