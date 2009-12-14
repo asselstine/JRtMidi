@@ -1,7 +1,7 @@
 Introduction
 
 
-JRtMidi is a Java wrapper of the RtMidi library.
+JRtMidi is a Java wrapper for the RtMidi library.
 
 For more information on RtMidi, please see the documentation included in the RtMidi subdirectory.  Or go to http://www.music.mcgill.ca/~gary/rtmidi/
 
