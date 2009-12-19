@@ -36,8 +36,8 @@ namespace std {
 %feature("director") RtMidiCallback;
 
 %{
-        #include "RtCallback.h"
-        #include "RtMidi.h"
+#include "RtCallback.h"
+#include "RtMidi.h"
 %}
 
 class RtCallback {
@@ -48,7 +48,7 @@ public:
         virtual void receiveMessage( double timeStamp, std::vector<unsigned char> *message);
 };
 
-%typemap(javapackage) RtMidiIn, RtMidiIn *, RtMidiIn & "org.rtmidi";
+/* %typemap(javapackage) RtCallback, RtCallback*, RtCallback&, RtMidiOut, RtMidiOut*, RtMidiOut&, RtMidiIn, RtMidiIn *, RtMidiIn & "org.rtmidi"; */
 
 class RtMidiIn
 {
@@ -88,3 +88,13 @@ class RtMidiOut
   void sendMessage( std::vector<unsigned char> *message );
 };
 
+%pragma(java) jniclasscode=%{
+	static {
+		try {
+			System.loadLibrary("jrtmidi");
+		} catch (UnsatisfiedLinkError e) {
+			System.err.println("Could not load JRtMidi native library: " + e);
+			System.exit(1);
+		}
+	}
+%}
